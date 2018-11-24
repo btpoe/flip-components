@@ -27,13 +27,10 @@ export class Flipper extends React.PureComponent {
 }
 
 class FlippedWithRef extends React.PureComponent {
-  static defaultProps = defaultContext;
-
-  ref = React.createRef();
-
   constructor(props, ...args) {
     super(props, ...args);
 
+    this.ref = React.createRef();
     this.timeline = new props.TimelineAdapter(props.flipConfig);
   }
 
@@ -65,6 +62,7 @@ class FlippedWithRef extends React.PureComponent {
       TimelineAdapter,
       ...props
     } = this.props;
+
 
     return <As {...props} ref={this.ref} style={{ ...style, willChange: 'transform' }} />;
   }

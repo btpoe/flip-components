@@ -1,18 +1,31 @@
 {
   "name": "flip-components",
-  "version": "1.0.0-alpha.2",
-  "peerDependencies": {
-    "react": "16.3.0",
-    "react-dom": "16.3.0"
+  "version": "1.0.0-alpha.3",
+  "license": "MIT",
+  "author": {
+    "name": "Brandon Poe",
+    "email": "brandonpoe@me.com",
+    "url": "https://brandonpoe.com"
   },
-  "module": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/btpoe/flip-components.git"
+  },
+  "peerDependencies": {
+    "react": "^16.3.0",
+    "react-dom": "^16.3.0"
+  },
+  "module": "src/index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "build": "yarn babel src -d . --presets=@babel/env,@babel/react",
+    "prepublishOnly": "yarn build",
+    "postpublish": "node ./scripts/postpublish.js"
   },
   "devDependencies": {
-    "react-scripts": "latest"
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-es2015": "^6.24.1"
   }
 }
