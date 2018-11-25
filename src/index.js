@@ -14,12 +14,14 @@ const { Provider, Consumer } = React.createContext(defaultContext);
 
 export class Flipper extends React.PureComponent {
   render() {
-    const { flipKey, withParent, ...value } = this.props;
+    const { flipKey, withParent, children, ...value } = this.props;
 
     return (
       <Consumer>
         {higherValue => (
-          <Provider value={{ ...higherValue, ...value, flipKey: withParent ? `${higherValue.flipKey}${flipKey}` : flipKey }} />
+          <Provider value={{ ...higherValue, ...value, flipKey: withParent ? `${higherValue.flipKey}${flipKey}` : flipKey }}>
+            {children}
+          </Provider>
         )}
       </Consumer>
     );

@@ -1,6 +1,6 @@
 {
   "name": "flip-components",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "license": "MIT",
   "author": {
     "name": "Brandon Poe",
@@ -15,7 +15,7 @@
     "react": "^16.3.0",
     "react-dom": "^16.3.0"
   },
-  "module": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "yarn babel src -d . --presets=@babel/env,@babel/react",
     "prepublishOnly": "yarn build",
