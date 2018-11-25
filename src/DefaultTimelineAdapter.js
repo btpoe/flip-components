@@ -17,10 +17,15 @@ export default class TimelineAdapter {
 
     const nextPos = this.cacheData(element);
 
+    const sx = (prevPos.width / nextPos.width) || '0';
+    const sy = (prevPos.height / nextPos.height) || '0';
+    const dx = (prevPos.left - nextPos.left) || '0';
+    const dy = (prevPos.top - nextPos.top) || '0';
+
     element.style.transformOrigin = '0 0';
 
     this.timeline = element.animate([
-        { transform: `matrix(${prevPos.width / nextPos.width}, 0, 0, ${prevPos.height / nextPos.height}, ${prevPos.left - nextPos.left}, ${prevPos.top - nextPos.top})` },
+        { transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy})` },
         { transform: getComputedStyle(element).getPropertyValue('transform') },
       ], this.options);
 
