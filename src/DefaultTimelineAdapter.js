@@ -17,11 +17,11 @@ export default class TimelineAdapter {
 
     const nextPos = this.cacheData(element);
 
-    element.style.transformOrigin = 'top left';
+    element.style.transformOrigin = '0 0';
 
     this.timeline = element.animate([
-        { transform: `translate(${prevPos.left - nextPos.left}px, ${prevPos.top - nextPos.top}px) scale(${prevPos.width / nextPos.width}, ${prevPos.height / nextPos.height})` },
-        { transform: `none` },
+        { transform: `matrix(${prevPos.width / nextPos.width}, 0, 0, ${prevPos.height / nextPos.height}, ${prevPos.left - nextPos.left}, ${prevPos.top - nextPos.top})` },
+        { transform: getComputedStyle(element).getPropertyValue('transform') },
       ], this.options);
 
     const adapter = this;

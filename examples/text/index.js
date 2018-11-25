@@ -1,9 +1,6 @@
-import React, { Component } from 'react';
-import { render } from 'react-dom';
 import { Flipper, Flipped, FlippedText } from '../../src/index.js';
-import './style.css';
 
-class App extends Component {
+class App extends React.Component {
   state = {
     stacked: false
   };
