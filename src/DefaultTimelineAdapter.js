@@ -23,11 +23,13 @@ export default class TimelineAdapter {
     const dy = (prevPos.top - nextPos.top) || '0';
 
     element.style.transformOrigin = '0 0';
+    const transform = getComputedStyle(element).getPropertyValue('transform');
+    const mod = transform !== 'none' ? transform : '';
 
     this.timeline = element.animate([
-        { transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy})` },
-        { transform: getComputedStyle(element).getPropertyValue('transform') },
-      ], this.options);
+      { transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy}) ${mod}` },
+      { transform: `matrix(1, 0, 0, 1, 0, 0) ${mod}` },
+    ], this.options);
 
     const adapter = this;
     this.finishCallback = function() {
