@@ -38,7 +38,7 @@ class FlippedWithRef extends React.PureComponent {
 
   getSnapshotBeforeUpdate(nextProps) {
     if (nextProps.flipKey !== this.props.flipKey && this.ref.current) {
-      return this.timeline.pause().cacheData(this.ref.current);;
+      return this.timeline.pause().cacheData(this.ref.current);
     }
     return null;
   }

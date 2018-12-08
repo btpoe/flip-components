@@ -5,30 +5,50 @@ export default class TimelineAdapter {
   }
 
   cacheData(element) {
-    return element.getBoundingClientRect();
+    const styles = getComputedStyle(element);
+
+    return {
+      rect: element.getBoundingClientRect(),
+      transform: styles.getPropertyValue('transform'),
+      opacity: styles.getPropertyValue('opacity'),
+    };
   }
 
-  animate(element, prevPos) {
+  animate(element, cache) {
     if (this.timeline) {
       // clean up old animation
       this.timeline.removeEventListener('finish', this.finishCallback);
       this.timeline.cancel();
     }
 
-    const nextPos = this.cacheData(element);
+    const {
+      rect: prevRect,
+      opacity: prevOpacity
+    } = cache;
 
-    const sx = (prevPos.width / nextPos.width) || '0';
-    const sy = (prevPos.height / nextPos.height) || '0';
-    const dx = (prevPos.left - nextPos.left) || '0';
-    const dy = (prevPos.top - nextPos.top) || '0';
+    const {
+      rect: nextRect,
+      transform,
+      opacity,
+    } = this.cacheData(element);
+
+    const sx = (prevRect.width / nextRect.width) || '0';
+    const sy = (prevRect.height / nextRect.height) || '0';
+    const dx = (prevRect.left - nextRect.left) || '0';
+    const dy = (prevRect.top - nextRect.top) || '0';
 
     element.style.transformOrigin = '0 0';
-    const transform = getComputedStyle(element).getPropertyValue('transform');
     const mod = transform !== 'none' ? transform : '';
 
     this.timeline = element.animate([
-      { transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy}) ${mod}` },
-      { transform: `matrix(1, 0, 0, 1, 0, 0) ${mod}` },
+      {
+        transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy}) ${mod}`,
+        opacity: prevOpacity,
+      },
+      {
+        transform: `matrix(1, 0, 0, 1, 0, 0) ${mod}`,
+        opacity,
+      },
     ], this.options);
 
     const adapter = this;
