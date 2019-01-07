@@ -10,6 +10,7 @@ export default class TimelineAdapter {
     return {
       rect: element.getBoundingClientRect(),
       transform: styles.getPropertyValue('transform'),
+      transformOrigin: styles.getPropertyValue('transform-origin'),
       opacity: styles.getPropertyValue('opacity'),
     };
   }
@@ -29,6 +30,7 @@ export default class TimelineAdapter {
     const {
       rect: nextRect,
       transform,
+      transformOrigin,
       opacity,
     } = this.cacheData(element);
 
@@ -37,16 +39,17 @@ export default class TimelineAdapter {
     const dx = (prevRect.left - nextRect.left) || '0';
     const dy = (prevRect.top - nextRect.top) || '0';
 
-    element.style.transformOrigin = '0 0';
     const mod = transform !== 'none' ? transform : '';
 
     this.timeline = element.animate([
       {
         transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy}) ${mod}`,
+        transformOrigin: '0 0 0',
         opacity: prevOpacity,
       },
       {
         transform: `matrix(1, 0, 0, 1, 0, 0) ${mod}`,
+        transformOrigin,
         opacity,
       },
     ], this.options);
