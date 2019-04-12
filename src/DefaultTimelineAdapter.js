@@ -5,6 +5,8 @@ export default class TimelineAdapter {
   }
 
   cacheData(element) {
+    if (!(element instanceof Element)) return;
+
     const styles = getComputedStyle(element);
 
     return {
@@ -16,6 +18,8 @@ export default class TimelineAdapter {
   }
 
   animate(element, cache) {
+    if (!(element instanceof Element) || !cache) return;
+
     if (this.timeline) {
       // clean up old animation
       this.timeline.removeEventListener('finish', this.finishCallback);
