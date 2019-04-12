@@ -846,6 +846,7 @@
 "@babel/preset-es2015@^6.24.1":
   version "7.0.0-beta.53"
   resolved "https://registry.yarnpkg.com/@babel/preset-es2015/-/preset-es2015-7.0.0-beta.53.tgz#4982fa1948db1093766288f69913e2ce360311e4"
+  integrity sha1-SYL6GUjbEJN2Yoj2mRPizjYDEeQ=
   dependencies:
     "@babel/helper-plugin-utils" "7.0.0-beta.53"
     "@babel/plugin-transform-arrow-functions" "7.0.0-beta.53"
