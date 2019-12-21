@@ -2,6 +2,7 @@ import React from 'react';
 import TimelineAdapter from './DefaultTimelineAdapter';
 
 const defaultContext = {
+  parent: document.body,
   flipConfig: {
     duration: 300,
     easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
@@ -66,7 +67,11 @@ class FlippedWithRef extends React.PureComponent {
     } = this.props;
 
 
-    return <As {...props} ref={this.ref} style={{ ...style, willChange: 'transform' }} />;
+    return (
+      <Provider value={{ parent: this.ref, flipConfig, flipKey, TimelineAdapter }}>
+        <As {...props} ref={this.ref} style={{ ...style, willChange: 'transform' }} />;
+      </Provider>
+    );
   }
 }
 
@@ -74,9 +79,7 @@ export class Flipped extends React.PureComponent {
   render() {
     return (
       <Consumer>
-        {context => (
-          <FlippedWithRef {...context} {...this.props} />
-        )}
+        {context => <FlippedWithRef {...context} {...this.props} />}
       </Consumer>
     );
   }
