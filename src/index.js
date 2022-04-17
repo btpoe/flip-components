@@ -1,111 +1,112 @@
-import React from 'react';
-import TimelineAdapter from './DefaultTimelineAdapter';
+import React from "react";
+import TimelineAdapter from "./DefaultTimelineAdapter";
 
-const defaultContext = {
+const FlipContext = React.createContext({
   flipConfig: {
     duration: 300,
-    easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
+    easing: "cubic-bezier(0.42, 0, 0.58, 1)",
   },
   flipKey: null,
   TimelineAdapter,
-};
+});
 
-const { Provider, Consumer } = React.createContext(defaultContext);
-
-export class Flipper extends React.PureComponent {
-  render() {
-    const { flipKey, withParent, children, ...value } = this.props;
-
-    return (
-      <Consumer>
-        {higherValue => (
-          <Provider value={{ ...higherValue, ...value, flipKey: withParent ? `${higherValue.flipKey}${flipKey}` : flipKey }}>
-            {children}
-          </Provider>
-        )}
-      </Consumer>
-    );
-  }
+export function Flipper({ flipKey, withParent, children, ...value }) {
+  const higherValue = React.useContext(FlipContext);
+  return (
+    <FlipContext.Provider
+      value={{
+        ...higherValue,
+        ...value,
+        flipKey: withParent ? `${higherValue.flipKey}${flipKey}` : flipKey,
+      }}
+    >
+      {children}
+    </FlipContext.Provider>
+  );
 }
 
-class FlippedWithRef extends React.PureComponent {
-  constructor(props, ...args) {
-    super(props, ...args);
+export function Flipped({ as: As = "div", style = {}, ...props }) {
+  const { TimelineAdapter, flipConfig, flipKey } =
+    React.useContext(FlipContext);
+  const nodeRef = React.useRef();
+  const cacheData = React.useRef();
+  const timeline = React.useMemo(
+    () => new TimelineAdapter(flipConfig),
+    [TimelineAdapter, flipConfig]
+  );
+  const [mounting, setMounting] = React.useState(true);
 
-    this.ref = React.createRef();
-    this.timeline = new props.TimelineAdapter(props.flipConfig);
+  React.useMemo(() => {
+    cacheData.current = timeline.pause().cacheData(nodeRef.current);
+  }, [flipKey]);
+
+  React.useLayoutEffect(() => {
+    timeline.animate(nodeRef.current, cacheData.current);
+  }, [flipKey]);
+
+  if (typeof props.children === "function") {
+    return props.children({ ref: nodeRef });
   }
 
-  getSnapshotBeforeUpdate(nextProps) {
-    if (nextProps.flipKey !== this.props.flipKey && this.ref.current) {
-      return this.timeline.pause().cacheData(this.ref.current);
-    }
-    return null;
-  }
+  React.useLayoutEffect(() => {
+    setMounting(false);
+  }, []);
 
-  componentDidUpdate(prevProps, prevState, cacheData) {
-    if (prevProps.flipKey !== this.props.flipKey && this.ref.current) {
-      this.timeline.animate(this.ref.current, cacheData);
-    }
-  }
+  React.useEffect(() => {
+    const clone = nodeRef.current.cloneNode();
+    const sibling = nodeRef.current.nextSibling;
+    const parent = nodeRef.current.parentNode;
 
-  render() {
-    const { children } = this.props;
+    return () => {
+      if (!nodeRef.current) {
+        const insert = parent.contains(sibling)
+          ? "insertBefore"
+          : "appendChild";
+        parent[insert](clone, sibling);
+        requestAnimationFrame(() => {
+          clone.classList.add("is-exit");
+        });
+        setTimeout(() => {
+          parent.removeChild(clone);
+        }, 500);
+      }
+    };
+  }, [flipKey]);
 
-    if (typeof children === 'function') {
-      return children({ ref: this.ref });
-    }
-
-    const {
-      as: As = 'div',
-      style = {},
-      flipConfig,
-      flipKey,
-      TimelineAdapter,
-      ...props
-    } = this.props;
-
-
-    return <As {...props} ref={this.ref} style={{ ...style, willChange: 'transform' }} />;
-  }
+  return (
+    <As
+      {...props}
+      className={`${props.className || ""}${mounting ? " is-enter" : ""}`}
+      ref={nodeRef}
+      style={{ ...style, willChange: "transform" }}
+    />
+  );
 }
 
-export class Flipped extends React.PureComponent {
-  render() {
-    return (
-      <Consumer>
-        {context => (
-          <FlippedWithRef {...context} {...this.props} />
-        )}
-      </Consumer>
-    );
-  }
-}
-
-export class FlippedText extends React.PureComponent {
-  render() {
-    const { children } = this.props;
-
-    return (
-      <React.Fragment>
-        {children.toString().trim().split(/\s+/).reduce((acc, textNode, i) => {
+export function FlippedText({ children }) {
+  return (
+    <React.Fragment>
+      {children
+        .toString()
+        .trim()
+        .split(/\s+/)
+        .reduce((acc, textNode, i) => {
           if (i) {
-            acc.push(
-              <React.Fragment key={i}>
-                {' '}
-              </React.Fragment>
-            );
+            acc.push(<React.Fragment key={i}> </React.Fragment>);
           }
 
           acc.push(
-            <Flipped as="span" style={{ display: 'inline-block' }} key={textNode + i}>
+            <Flipped
+              as="span"
+              style={{ display: "inline-block" }}
+              key={textNode + i}
+            >
               {textNode}
             </Flipped>
           );
 
           return acc;
         }, [])}
-      </React.Fragment>
-    );
-  }
+    </React.Fragment>
+  );
 }
