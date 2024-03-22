@@ -4,6 +4,11 @@ export default class TimelineAdapter {
     this.timeline = null;
   }
 
+  static defaultConfig = {
+    duration: 300,
+    easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
+  };
+
   cacheData(element) {
     if (!(element instanceof Element)) return;
 
@@ -26,42 +31,45 @@ export default class TimelineAdapter {
       this.timeline.cancel();
     }
 
-    const {
-      rect: prevRect,
-      opacity: prevOpacity
-    } = cache;
+    const { rect: prevRect, opacity: prevOpacity } = cache;
 
     const {
       rect: nextRect,
       transform,
-      transformOrigin,
+      transformOrigin = '0 0 0',
       opacity,
     } = this.cacheData(element);
 
-    const sx = (prevRect.width / nextRect.width) || '0';
-    const sy = (prevRect.height / nextRect.height) || '0';
-    const dx = (prevRect.left - nextRect.left) || '0';
-    const dy = (prevRect.top - nextRect.top) || '0';
+    const sx = prevRect.width / nextRect.width || '0';
+    const sy = prevRect.height / nextRect.height || '0';
+
+    const dx =
+      prevRect.left + prevRect.width / 2 - (nextRect.left + nextRect.width / 2);
+    const dy =
+      prevRect.top + prevRect.height / 2 - (nextRect.top + nextRect.height / 2);
 
     const mod = transform !== 'none' ? transform : '';
 
-    this.timeline = element.animate([
-      {
-        transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy}) ${mod}`,
-        transformOrigin: '0 0 0',
-        opacity: prevOpacity,
-      },
-      {
-        transform: `matrix(1, 0, 0, 1, 0, 0) ${mod}`,
-        transformOrigin,
-        opacity,
-      },
-    ], this.options);
+    this.timeline = element.animate(
+      [
+        {
+          transform: `matrix(${sx}, 0, 0, ${sy}, ${dx}, ${dy}) ${mod}`,
+          transformOrigin: '50% 50%',
+          opacity: prevOpacity,
+        },
+        {
+          transform: `matrix(1, 0, 0, 1, 0, 0) ${mod}`,
+          transformOrigin,
+          opacity,
+        },
+      ],
+      this.options
+    );
 
     const adapter = this;
-    this.finishCallback = function() {
+    this.finishCallback = function () {
       if (this === adapter.timeline) adapter.timeline = null;
-    }
+    };
     this.timeline.addEventListener('finish', this.finishCallback);
 
     return this;

@@ -1,114 +1,92 @@
-import React from 'react';
-import TimelineAdapter from './DefaultTimelineAdapter';
+import React, {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import timelineAdapter from './DefaultTimelineAdapter';
 
 const defaultContext = {
-  parent: document.body,
-  flipConfig: {
-    duration: 300,
-    easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
-  },
   flipKey: null,
-  TimelineAdapter,
+  timelineAdapter,
 };
 
-const { Provider, Consumer } = React.createContext(defaultContext);
+const FlipContext = createContext(defaultContext);
 
-export class Flipper extends React.PureComponent {
-  render() {
-    const { flipKey, withParent, children, ...value } = this.props;
+export function Flipper({ flipKey, withParent, children, ...value }) {
+  const higherValue = useContext(FlipContext);
 
-    return (
-      <Consumer>
-        {higherValue => (
-          <Provider value={{ ...higherValue, ...value, flipKey: withParent ? `${higherValue.flipKey}${flipKey}` : flipKey }}>
-            {children}
-          </Provider>
-        )}
-      </Consumer>
-    );
-  }
+  return (
+    <FlipContext.Provider
+      value={{
+        ...higherValue,
+        ...value,
+        flipKey: withParent ? `${higherValue.flipKey}${flipKey}` : flipKey,
+      }}
+    >
+      {children}
+    </FlipContext.Provider>
+  );
 }
 
-class FlippedWithRef extends React.PureComponent {
-  constructor(props, ...args) {
-    super(props, ...args);
+export function Flipped({ children, as: As = 'div', style = {}, ...props }) {
+  const {
+    timelineAdapter: TimelineAdapter,
+    flipKey,
+    flipConfig = TimelineAdapter.defaultConfig,
+  } = useContext(FlipContext);
+  const ref = useRef(null);
+  const timeline = useMemo(() => new TimelineAdapter(flipConfig), []);
+  const prevFlipKey = useRef(flipKey);
+  const cacheData = useRef(null);
 
-    this.ref = React.createRef();
-    this.timeline = new props.TimelineAdapter(props.flipConfig);
+  if (prevFlipKey.current !== flipKey && ref.current) {
+    cacheData.current = timeline.pause().cacheData(ref.current);
   }
 
-  getSnapshotBeforeUpdate(nextProps) {
-    if (nextProps.flipKey !== this.props.flipKey && this.ref.current) {
-      return this.timeline.pause().cacheData(this.ref.current);
-    }
-    return null;
+  useLayoutEffect(() => {
+    timeline.animate(ref.current, cacheData.current);
+  }, [cacheData.current]);
+
+  prevFlipKey.current = flipKey;
+
+  if (typeof children === 'function') {
+    return children({ ref });
   }
 
-  componentDidUpdate(prevProps, prevState, cacheData) {
-    if (prevProps.flipKey !== this.props.flipKey && this.ref.current) {
-      this.timeline.animate(this.ref.current, cacheData);
-    }
-  }
-
-  render() {
-    const { children } = this.props;
-
-    if (typeof children === 'function') {
-      return children({ ref: this.ref });
-    }
-
-    const {
-      as: As = 'div',
-      style = {},
-      flipConfig,
-      flipKey,
-      TimelineAdapter,
-      ...props
-    } = this.props;
-
-
-    return (
-      <Provider value={{ parent: this.ref, flipConfig, flipKey, TimelineAdapter }}>
-        <As {...props} ref={this.ref} style={{ ...style, willChange: 'transform' }} />;
-      </Provider>
-    );
-  }
+  return (
+    <As {...props} ref={ref} style={{ ...style, willChange: 'transform' }}>
+      {children}
+    </As>
+  );
 }
 
-export class Flipped extends React.PureComponent {
-  render() {
-    return (
-      <Consumer>
-        {context => <FlippedWithRef {...context} {...this.props} />}
-      </Consumer>
-    );
-  }
-}
-
-export class FlippedText extends React.PureComponent {
-  render() {
-    const { children } = this.props;
-
-    return (
-      <React.Fragment>
-        {children.toString().trim().split(/\s+/).reduce((acc, textNode, i) => {
+export function FlippedText({ children }) {
+  return (
+    <React.Fragment>
+      {children
+        .toString()
+        .trim()
+        .split(/\s+/)
+        .reduce((acc, textNode, i) => {
           if (i) {
-            acc.push(
-              <React.Fragment key={i}>
-                {' '}
-              </React.Fragment>
-            );
+            acc.push(<React.Fragment key={i}> </React.Fragment>);
           }
 
           acc.push(
-            <Flipped as="span" style={{ display: 'inline-block' }} key={textNode + i}>
-              {textNode}
+            <Flipped
+              as="span"
+              style={{ display: 'inline-block' }}
+              key={textNode + i}
+            >
+              {' '}
+              {textNode}{' '}
             </Flipped>
           );
 
           return acc;
         }, [])}
-      </React.Fragment>
-    );
-  }
+    </React.Fragment>
+  );
 }
